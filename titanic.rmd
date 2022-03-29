@@ -1,0 +1,12 @@
+---
+title: "Titanic"
+author: "Kaleb Cervantes"
+date: "3/29/2022"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is for me to test if it works.
