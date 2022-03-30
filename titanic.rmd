@@ -9,4 +9,17 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This is for me to test if it works.
+Loading Libraries.
+
+```{r}
+library(dplyr)
+library(titanic)
+```
+
+The first thing I decided to do was check for where the null values in dataframe might be.
+
+```{r}
+titanic_train %>%
+  is.na %>%
+  summary
+```
