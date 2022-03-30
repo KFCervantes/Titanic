@@ -261,5 +261,8 @@ data.frame(
   PassengerId = test$PassengerId,
   Survived = test_survived
 ) %>%
-  write.csv('answer.csv')
+  write.csv(
+    'answer.csv',
+    row.names = F
+  )
 ```
