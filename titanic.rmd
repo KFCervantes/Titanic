@@ -128,7 +128,7 @@ train %>%
 full_formula %>%
   glm(
     'binomial',
-    train
+    train2
   ) %>%
   summary
 ```

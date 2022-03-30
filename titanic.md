@@ -246,38 +246,42 @@ train %>%
 full_formula %>%
   glm(
     'binomial',
-    train
+    train2
   ) %>%
   summary
 ```
 
     ## 
     ## Call:
-    ## glm(formula = ., family = "binomial", data = train)
+    ## glm(formula = ., family = "binomial", data = train2)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -2.4061  -0.8476  -0.6208   0.9968   2.4030  
+    ## -2.7048  -0.6424  -0.3729   0.6165   2.4619  
     ## 
     ## Coefficients:
     ##               Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)  3.3283957  0.5278971   6.305 2.88e-10 ***
-    ## PassengerId  0.0001545  0.0003283   0.471  0.63781    
-    ## Pclass      -1.1517899  0.1460712  -7.885 3.14e-15 ***
-    ## Age         -0.0445935  0.0072119  -6.183 6.28e-10 ***
-    ## SibSp       -0.2890863  0.1063055  -2.719  0.00654 ** 
-    ## Parch        0.2461954  0.1091847   2.255  0.02414 *  
-    ## Fare         0.0033048  0.0025419   1.300  0.19355    
+    ## (Intercept)  1.770e+01  6.151e+02   0.029  0.97705    
+    ## PassengerId  3.554e-04  3.835e-04   0.927  0.35410    
+    ## Pclass      -1.196e+00  1.649e-01  -7.251 4.15e-13 ***
+    ## Sexmale     -2.650e+00  2.232e-01 -11.872  < 2e-16 ***
+    ## Age         -4.337e-02  8.234e-03  -5.268 1.38e-07 ***
+    ## SibSp       -3.544e-01  1.297e-01  -2.734  0.00626 ** 
+    ## Parch       -6.847e-02  1.245e-01  -0.550  0.58235    
+    ## Fare         1.475e-03  2.558e-03   0.576  0.56433    
+    ## EmbarkedC   -1.222e+01  6.151e+02  -0.020  0.98415    
+    ## EmbarkedQ   -1.304e+01  6.151e+02  -0.021  0.98309    
+    ## EmbarkedS   -1.262e+01  6.151e+02  -0.021  0.98363    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
     ##     Null deviance: 964.52  on 713  degrees of freedom
-    ## Residual deviance: 814.96  on 707  degrees of freedom
-    ## AIC: 828.96
+    ## Residual deviance: 631.48  on 703  degrees of freedom
+    ## AIC: 653.48
     ## 
-    ## Number of Fisher Scoring iterations: 4
+    ## Number of Fisher Scoring iterations: 13
 
 In this case, the only significant variables seems to be `Pclass`,
 `Sex`, `Age`, and `SibSp`. As such I decided to make a new model with
