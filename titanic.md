@@ -335,3 +335,119 @@ to use the same method as before.
     ## [1] 80.81232
 
 This method seems to have correctly predicted 80.81232% of the dataset.
+
+# Dealing with `Age`
+
+I decided to look at what the training data is like for the significant
+variables.
+
+``` r
+titanic_test[c('Pclass', 'Sex', 'Age', 'SibSp')] %>%
+  summary
+```
+
+    ##      Pclass          Sex                 Age            SibSp       
+    ##  Min.   :1.000   Length:418         Min.   : 0.17   Min.   :0.0000  
+    ##  1st Qu.:1.000   Class :character   1st Qu.:21.00   1st Qu.:0.0000  
+    ##  Median :3.000   Mode  :character   Median :27.00   Median :0.0000  
+    ##  Mean   :2.266                      Mean   :30.27   Mean   :0.4474  
+    ##  3rd Qu.:3.000                      3rd Qu.:39.00   3rd Qu.:1.0000  
+    ##  Max.   :3.000                      Max.   :76.00   Max.   :8.0000  
+    ##                                     NA's   :86
+
+Here I noticed that `Age` has a lot of null values. In order to fix
+this, I decided to use a linear model to estimate age.
+
+``` r
+lm_age <- (Age ~ . - Survived) %>%
+  lm(train2) %>%
+  step(
+    trace = 0,
+    k = train2 %>% nrow %>% log
+  )
+
+lm_age %>%
+  summary
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = Age ~ Pclass + Sex + SibSp, data = train2)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -37.150  -8.081  -1.039   6.751  45.678 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  43.8659     1.4483  30.287  < 2e-16 ***
+    ## Pclass       -6.4136     0.5792 -11.072  < 2e-16 ***
+    ## Sexmale       3.6973     1.0107   3.658 0.000273 ***
+    ## SibSp        -4.2279     0.5187  -8.151 1.63e-15 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 12.76 on 710 degrees of freedom
+    ## Multiple R-squared:  0.2315, Adjusted R-squared:  0.2283 
+    ## F-statistic: 71.29 on 3 and 710 DF,  p-value: < 2.2e-16
+
+``` r
+lm_age %>%
+  plot
+```
+
+![](titanic_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-15-2.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-15-3.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-15-4.png)<!-- -->
+
+It seems like the variability seems to increase with the fitted values.
+The residuals also seem to be normally distributed. This indicates that
+the constant variability assumption is not met for linear regression.
+
+So not all the assumptions for linear regression are met and the model
+does not do a great job of explaining variability. I’m probably still
+going to use this anyway.
+
+In order to test this out, I added this estimate to the training data
+
+``` r
+train3 <- titanic_train
+
+ind <- train3 %$%
+  Age %>%
+  is.na
+
+train_pred_age <- lm_age %>%
+  predict(train3[ind, ])
+
+# change negative age to min age
+train_pred_age[train_pred_age < 0.17] <- 0.17
+
+train3$Age[ind] <- train_pred_age
+
+train3 %$%
+  Age %>%
+  summary
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##    0.17   21.00   28.32   29.30   36.00   80.00
+
+This seemed to get rid of the null values.
+
+I now tested the accuracy of the last logistical model with this info.
+
+``` r
+estimates <- lm2 %>%
+  predict(
+    train3,
+    type = 'response'
+  ) %>%
+  round
+
+100 * (estimates == train3$Survived) %>%
+  mean
+```
+
+    ## [1] 81.59371
+
+With these null values filled out, I was able to corretly guess
+81.59371% of the results.
