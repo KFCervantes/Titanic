@@ -12,7 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 Loading Libraries.
 
 ```{r}
+<<<<<<< HEAD
 library(dplyr)
+=======
+>>>>>>> 906e667c286433f6b8432aecc4ab604cce3a4ecb
 library(ggplot2)
 library(knitr)
 library(magrittr)
