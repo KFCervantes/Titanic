@@ -451,3 +451,47 @@ estimates <- lm2 %>%
 
 With these null values filled out, I was able to corretly guess
 81.59371% of the results.
+
+# Test Data
+
+Now I will fill out the null values with the estimates.
+
+``` r
+test <- titanic_test
+
+ind <- test %$%
+  Age %>%
+  is.na
+
+test_pred_age <- lm_age %>%
+  predict(test[ind, ])
+
+# change negative age to min age
+test_pred_age[test_pred_age < 0.17] <- 0.17
+
+test$Age[ind] <- test_pred_age
+
+test %$%
+  Age %>%
+  summary
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##    0.17   22.00   28.32   29.75   36.38   76.00
+
+Now I estimate the predictions and output to a csv file.
+
+``` r
+test_survived <- lm2 %>%
+  predict(
+    test,
+    type = 'response'
+  ) %>%
+  round
+
+data.frame(
+  PassengerId = test$PassengerId,
+  Survived = test_survived
+) %>%
+  write.csv('answer.csv')
+```
