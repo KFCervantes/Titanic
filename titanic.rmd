@@ -13,13 +13,62 @@ Loading Libraries.
 
 ```{r}
 library(dplyr)
+library(ggplot2)
+library(knitr)
+library(magrittr)
+library(stringr)
 library(titanic)
 ```
 
-The first thing I decided to do was check for where the null values in dataframe might be.
+This part is to just learn some basic logistical reggression in R. In order to do this, I decided to subset the data to only include numeric columns and rows containing non null values.
 
 ```{r}
-titanic_train %>%
-  is.na %>%
+train <- titanic_train %>%
+  select_if(is.numeric) %>%
+  subset(!(Age %>% is.na))
+
+train %>%
+  head %>%
+  kable
+```
+
+In order to check colinearity, I decided to use a correlation matrix.
+
+```{r}
+train %>%
+  cor %>%
+  kable
+```
+
+Since there does not seem to be colinearity, we procede.
+
+```{r}
+(Survived ~ .) %>%
+  glm(
+    'binomial',
+    train
+  ) %>%
   summary
 ```
+
+Here we see that the variables `PassengerId` and `Fare` do not seem significant, so for now I will drop them.
+
+```{r}
+lm <- (Survived ~ . - PassengerId - Fare) %>%
+  glm(
+    'binomial',
+    train
+  )
+
+lm %>%
+  summary
+```
+
+Now I only really understand the coefficents part of this. I will round the fitted values and compare them to the original to see what percentage I got correct.
+
+```{r}
+100 * ((lm %$% fitted.values %>% round) == (train %$% Survived)) %>%
+  mean
+```
+
+This method seems to have correctly guessed 69.60784 of the dataset.
