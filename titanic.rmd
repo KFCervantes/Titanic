@@ -42,33 +42,24 @@ train %>%
   kable
 ```
 
-Since there does not seem to be colinearity, we procede.
+Since there does not seem to be colinearity, we procede. In order to find the best model, I start with the full model and use the `step` function to pick the predictors.
 
 ```{r}
 full_formula <- Survived ~ .
 
-full_formula %>%
+lm1 <- full_formula %>%
   glm(
     'binomial',
     train
   ) %>%
-  summary
-```
-
-Here we see that the variables `PassengerId` and `Fare` do not seem significant, so for now I will drop them.
-
-```{r}
-lm1 <- (Survived ~ . - PassengerId - Fare) %>%
-  glm(
-    'binomial',
-    train
+  step(
+    trace = 0,
+    k = train %>% nrow %>% log
   )
 
 lm1 %>%
   summary
 ```
-
-Now I only really understand the coefficents part of this. I will round the fitted values and compare them to the original to see what percentage I got correct.
 
 ```{r}
 100 * ((lm1 %$% fitted.values %>% round) == (train %$% Survived)) %>%
@@ -119,29 +110,22 @@ train2 <- titanic_train %>%
     -c(Cabin, Name, Ticket)
   )
 
-train %>%
+train2 %>%
   head %>%
   kable
 ```
 
 ```{r}
-full_formula %>%
+lm2 <- full_formula %>%
   glm(
     'binomial',
     train2
   ) %>%
-  summary
-```
-
-In this case, the only significant variables seems to be `Pclass`, `Sex`, `Age`, and `SibSp`. As such I decided to make a new model with only these.
-
-```{r}
-lm2 <- (Survived ~ Pclass + Sex + Age + SibSp) %>%
-  glm(
-    'binomial',
-    train2
+  step(
+    trace = 0,
+    k = train %>% nrow %>% log
   )
-
+  
 lm2 %>%
   summary
 ```
@@ -266,3 +250,5 @@ data.frame(
     row.names = F
   )
 ```
+
+This resulted in the score 0.75358.

@@ -71,55 +71,21 @@ train %>%
 | Parch       |  -0.0116174 |  0.0933170 |  0.0256831 | -0.1891193 |  0.3838199 |  1.0000000 |  0.2051189 |
 | Fare        |   0.0095918 |  0.2681886 | -0.5541825 |  0.0960667 |  0.1383288 |  0.2051189 |  1.0000000 |
 
-Since there does not seem to be colinearity, we procede.
+Since there does not seem to be colinearity, we procede. In order to
+find the best model, I start with the full model and use the `step`
+function to pick the predictors.
 
 ``` r
 full_formula <- Survived ~ .
 
-full_formula %>%
+lm1 <- full_formula %>%
   glm(
     'binomial',
     train
   ) %>%
-  summary
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = ., family = "binomial", data = train)
-    ## 
-    ## Deviance Residuals: 
-    ##     Min       1Q   Median       3Q      Max  
-    ## -2.4061  -0.8476  -0.6208   0.9968   2.4030  
-    ## 
-    ## Coefficients:
-    ##               Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)  3.3283957  0.5278971   6.305 2.88e-10 ***
-    ## PassengerId  0.0001545  0.0003283   0.471  0.63781    
-    ## Pclass      -1.1517899  0.1460712  -7.885 3.14e-15 ***
-    ## Age         -0.0445935  0.0072119  -6.183 6.28e-10 ***
-    ## SibSp       -0.2890863  0.1063055  -2.719  0.00654 ** 
-    ## Parch        0.2461954  0.1091847   2.255  0.02414 *  
-    ## Fare         0.0033048  0.0025419   1.300  0.19355    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 964.52  on 713  degrees of freedom
-    ## Residual deviance: 814.96  on 707  degrees of freedom
-    ## AIC: 828.96
-    ## 
-    ## Number of Fisher Scoring iterations: 4
-
-Here we see that the variables `PassengerId` and `Fare` do not seem
-significant, so for now I will drop them.
-
-``` r
-lm1 <- (Survived ~ . - PassengerId - Fare) %>%
-  glm(
-    'binomial',
-    train
+  step(
+    trace = 0,
+    k = train %>% nrow %>% log
   )
 
 lm1 %>%
@@ -128,7 +94,8 @@ lm1 %>%
 
     ## 
     ## Call:
-    ## glm(formula = ., family = "binomial", data = train)
+    ## glm(formula = Survived ~ Pclass + Age + SibSp + Parch, family = "binomial", 
+    ##     data = train)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
@@ -151,10 +118,6 @@ lm1 %>%
     ## AIC: 827.17
     ## 
     ## Number of Fisher Scoring iterations: 4
-
-Now I only really understand the coefficents part of this. I will round
-the fitted values and compare them to the original to see what
-percentage I got correct.
 
 ``` r
 100 * ((lm1 %$% fitted.values %>% round) == (train %$% Survived)) %>%
@@ -228,79 +191,39 @@ train2 <- titanic_train %>%
     -c(Cabin, Name, Ticket)
   )
 
-train %>%
+train2 %>%
   head %>%
   kable
 ```
 
-|     | PassengerId | Survived | Pclass | Age | SibSp | Parch |    Fare |
-|:----|------------:|---------:|-------:|----:|------:|------:|--------:|
-| 1   |           1 |        0 |      3 |  22 |     1 |     0 |  7.2500 |
-| 2   |           2 |        1 |      1 |  38 |     1 |     0 | 71.2833 |
-| 3   |           3 |        1 |      3 |  26 |     0 |     0 |  7.9250 |
-| 4   |           4 |        1 |      1 |  35 |     1 |     0 | 53.1000 |
-| 5   |           5 |        0 |      3 |  35 |     0 |     0 |  8.0500 |
-| 7   |           7 |        0 |      1 |  54 |     0 |     0 | 51.8625 |
+|     | PassengerId | Survived | Pclass | Sex    | Age | SibSp | Parch |    Fare | Embarked |
+|:----|------------:|---------:|-------:|:-------|----:|------:|------:|--------:|:---------|
+| 1   |           1 |        0 |      3 | male   |  22 |     1 |     0 |  7.2500 | S        |
+| 2   |           2 |        1 |      1 | female |  38 |     1 |     0 | 71.2833 | C        |
+| 3   |           3 |        1 |      3 | female |  26 |     0 |     0 |  7.9250 | S        |
+| 4   |           4 |        1 |      1 | female |  35 |     1 |     0 | 53.1000 | S        |
+| 5   |           5 |        0 |      3 | male   |  35 |     0 |     0 |  8.0500 | S        |
+| 7   |           7 |        0 |      1 | male   |  54 |     0 |     0 | 51.8625 | S        |
 
 ``` r
-full_formula %>%
+lm2 <- full_formula %>%
   glm(
     'binomial',
     train2
   ) %>%
-  summary
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = ., family = "binomial", data = train2)
-    ## 
-    ## Deviance Residuals: 
-    ##     Min       1Q   Median       3Q      Max  
-    ## -2.7048  -0.6424  -0.3729   0.6165   2.4619  
-    ## 
-    ## Coefficients:
-    ##               Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)  1.770e+01  6.151e+02   0.029  0.97705    
-    ## PassengerId  3.554e-04  3.835e-04   0.927  0.35410    
-    ## Pclass      -1.196e+00  1.649e-01  -7.251 4.15e-13 ***
-    ## Sexmale     -2.650e+00  2.232e-01 -11.872  < 2e-16 ***
-    ## Age         -4.337e-02  8.234e-03  -5.268 1.38e-07 ***
-    ## SibSp       -3.544e-01  1.297e-01  -2.734  0.00626 ** 
-    ## Parch       -6.847e-02  1.245e-01  -0.550  0.58235    
-    ## Fare         1.475e-03  2.558e-03   0.576  0.56433    
-    ## EmbarkedC   -1.222e+01  6.151e+02  -0.020  0.98415    
-    ## EmbarkedQ   -1.304e+01  6.151e+02  -0.021  0.98309    
-    ## EmbarkedS   -1.262e+01  6.151e+02  -0.021  0.98363    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 964.52  on 713  degrees of freedom
-    ## Residual deviance: 631.48  on 703  degrees of freedom
-    ## AIC: 653.48
-    ## 
-    ## Number of Fisher Scoring iterations: 13
-
-In this case, the only significant variables seems to be `Pclass`,
-`Sex`, `Age`, and `SibSp`. As such I decided to make a new model with
-only these.
-
-``` r
-lm2 <- (Survived ~ Pclass + Sex + Age + SibSp) %>%
-  glm(
-    'binomial',
-    train2
+  step(
+    trace = 0,
+    k = train %>% nrow %>% log
   )
-
+  
 lm2 %>%
   summary
 ```
 
     ## 
     ## Call:
-    ## glm(formula = ., family = "binomial", data = train2)
+    ## glm(formula = Survived ~ Pclass + Sex + Age + SibSp, family = "binomial", 
+    ##     data = train2)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
@@ -396,7 +319,7 @@ lm_age %>%
   plot
 ```
 
-![](titanic_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-15-2.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-15-3.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-15-4.png)<!-- -->
+![](titanic_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-13-2.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-13-3.png)<!-- -->![](titanic_files/figure-gfm/unnamed-chunk-13-4.png)<!-- -->
 
 It seems like the variability seems to increase with the fitted values.
 The residuals also seem to be normally distributed. This indicates that
@@ -498,3 +421,5 @@ data.frame(
     row.names = F
   )
 ```
+
+This resulted in the score 0.75358.
